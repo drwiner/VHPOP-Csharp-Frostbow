@@ -9,7 +9,7 @@ namespace BoltFreezer.Interfaces
 {
     public interface IPlanner
     {
-        IFrontier Frontier { get; }
+        ISearch Search { get; }
 
         List<IPlan> Solve(int k, float cutoff);
 

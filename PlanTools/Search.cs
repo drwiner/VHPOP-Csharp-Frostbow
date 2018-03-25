@@ -9,6 +9,18 @@ namespace BoltFreezer.PlanTools
 {
     public class ADstar : ISearch
     {
+        private IFrontier frontier;
+
+        public IFrontier Frontier
+        {
+            get { return frontier; }
+        }
+
+        public ADstar()
+        {
+            frontier = new PriorityQueue();
+        }
+
         public SearchType SType {
                 get { return SearchType.BestFirst;}
         }
@@ -25,14 +37,14 @@ namespace BoltFreezer.PlanTools
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            if (IP.Frontier.Count == 0)
+            if (Frontier.Count == 0)
             {
                 Console.WriteLine("check");
             }
 
-            while (IP.Frontier.Count > 0)
+            while (Frontier.Count > 0)
             {
-                var plan = IP.Frontier.Dequeue();
+                var plan = Frontier.Dequeue();
                 IP.Expanded++;
                 var flaw = plan.Flaws.Next();
 
@@ -64,7 +76,7 @@ namespace BoltFreezer.PlanTools
                     IP.WriteToFile(watch.ElapsedMilliseconds, plan as Plan);
                     return null;
                 }
-                var frontierCount = IP.Frontier.Count;
+                var frontierCount = Frontier.Count;
                 if (flaw.Ftype == Enums.FlawType.Link)
                 {
                     IP.RepairThreat(plan, flaw as ThreatenedLinkFlaw);
@@ -76,7 +88,7 @@ namespace BoltFreezer.PlanTools
                     IP.Reuse(plan, flaw as OpenCondition);
                 }
                 if (IP.Console_log)
-                    if (IP.Frontier.Count == frontierCount)
+                    if (Frontier.Count == frontierCount)
                         Console.WriteLine("here");
             }
 
@@ -91,6 +103,18 @@ namespace BoltFreezer.PlanTools
 
     public class DFS : ISearch
     {
+        private IFrontier frontier;
+
+        public IFrontier Frontier
+        {
+            get { return frontier; }
+        }
+
+        public DFS()
+        {
+            frontier = new DFSFrontier();
+        }
+
         public SearchType SType
         {
             get { return SearchType.DFS; }
@@ -111,9 +135,9 @@ namespace BoltFreezer.PlanTools
             var watch = System.Diagnostics.Stopwatch.StartNew();
             var Solutions = new List<IPlan>();
 
-            while (IP.Frontier.Count > 0)
+            while (Frontier.Count > 0)
             {
-                var plan = IP.Frontier.Dequeue();
+                var plan = Frontier.Dequeue();
                 IP.Expanded++;
                 var flaw = plan.Flaws.Next();
 
@@ -163,6 +187,18 @@ namespace BoltFreezer.PlanTools
 
     public class BFS : ISearch
     {
+        private IFrontier frontier;
+
+        public IFrontier Frontier
+        {
+            get { return frontier; }
+        }
+
+        public BFS()
+        {
+            frontier = new BFSFrontier();
+        }
+
         public SearchType SType
         {
             get { return SearchType.BFS; }
@@ -183,9 +219,9 @@ namespace BoltFreezer.PlanTools
             var watch = System.Diagnostics.Stopwatch.StartNew();
             var Solutions = new List<IPlan>();
 
-            while (IP.Frontier.Count > 0)
+            while (Frontier.Count > 0)
             {
-                var plan = IP.Frontier.Dequeue();
+                var plan = Frontier.Dequeue();
 
                 IP.Expanded++;
                 var flaw = plan.Flaws.Next();

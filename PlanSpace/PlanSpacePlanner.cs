@@ -12,7 +12,6 @@ namespace BoltFreezer.PlanSpace
 {
     public class PlanSpacePlanner : IPlanner
     {
-        private IFrontier frontier;
         private ISelection selection;
         private ISearch search;
 
@@ -39,9 +38,9 @@ namespace BoltFreezer.PlanSpace
             set { opened = value; }
         }
 
-        public IFrontier Frontier
+        public ISearch Search
         {
-            get { return frontier; }
+            get { return search; }
         }
 
         public PlanSpacePlanner(IPlan initialPlan, ISelection _selection, ISearch _search, bool consoleLog)
@@ -49,7 +48,6 @@ namespace BoltFreezer.PlanSpace
             console_log = consoleLog;
             selection = _selection;
             search = _search;
-            frontier = new PriorityQueue();
             Insert(initialPlan);
         }
 
@@ -57,7 +55,7 @@ namespace BoltFreezer.PlanSpace
         {
             console_log = false;
             selection = new E0(new AddReuseHeuristic());
-            frontier = new PriorityQueue();
+            search = new ADstar();
             Insert(initialPlan);
         }
 
@@ -74,7 +72,7 @@ namespace BoltFreezer.PlanSpace
         {
             if (!plan.Orderings.HasCycle())
             {
-                frontier.Enqueue(plan, Score(plan));
+                search.Frontier.Enqueue(plan, Score(plan));
                 opened++;
             }
         }

@@ -39,6 +39,7 @@ namespace TestVHPOP
 
             //problemFreezer.Serialize();
             problemFreezer.Deserialize();
+
             var initPlan = PlanSpacePlanner.CreateInitialPlan(problemFreezer);
 
             RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new AddReuseHeuristic()), k, cutoff, directory, 1);

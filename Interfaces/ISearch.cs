@@ -8,6 +8,8 @@ namespace BoltFreezer.Interfaces
 {
     public interface ISearch
     {
+        IFrontier Frontier { get; }
+
         SearchType SType { get; }
 
         List<IPlan> Search(IPlanner P);
