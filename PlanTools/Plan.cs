@@ -265,7 +265,7 @@ namespace BoltFreezer.PlanTools
         // Creates a clone of the plan. (orderings, and Links are Read-only, so only their host containers are replaced)
         public Object Clone ()
         {
-            List<IPlanStep> newSteps = new List<IPlanStep>();
+            var newSteps = new List<IPlanStep>();
 
             foreach (var step in steps)
             {
@@ -273,12 +273,12 @@ namespace BoltFreezer.PlanTools
                 newSteps.Add(step.Clone() as IPlanStep);
             }
 
-            IPlanStep newInitialStep = initialStep.Clone() as IPlanStep;
+            var newInitialStep = initialStep.Clone() as IPlanStep;
             // need clone of goal step because this as fulfillable conditions
-            IPlanStep newGoalStep = goalStep.Clone() as IPlanStep;
+            var newGoalStep = goalStep.Clone() as IPlanStep;
 
             // Assuming for now that members of the ordering graph are never mutated.  If they are, then a clone will keep references to mutated members
-            Graph<IPlanStep> newOrderings = orderings.Clone() as Graph<IPlanStep>;
+            var newOrderings = orderings.Clone() as Graph<IPlanStep>;
 
             // Causal Links are containers whose members are not mutated.
             List<CausalLink<IPlanStep>> newLinks = new List<CausalLink<IPlanStep>>();
@@ -288,7 +288,7 @@ namespace BoltFreezer.PlanTools
             }
 
             // Inherit all flaws, must clone very flaw
-            Flawque flawList = flaws.Clone();
+            var flawList = flaws.Clone() as Flawque;
 
             //return new Plan(newSteps, newInitial, newGoal, newInitialStep, newGoalStep, newOrderings, newLinks, flawList);
             return new Plan(newSteps, Initial, Goal, newInitialStep, newGoalStep, newOrderings, newLinks, flawList);

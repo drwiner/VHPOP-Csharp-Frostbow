@@ -15,5 +15,7 @@ namespace BoltFreezer.Interfaces
         void Add(ThreatenedLinkFlaw tclf);
 
         IFlaw Next();
+
+        Object Clone();
     }
 }

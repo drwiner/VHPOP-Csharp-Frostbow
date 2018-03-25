@@ -68,7 +68,6 @@ namespace BoltFreezer.PlanTools
             }
 
             OpenConditions.Add(oc);
-            //openConditions.Insert(oc);
         }
 
         public void Add(ThreatenedLinkFlaw tclf)
@@ -154,32 +153,26 @@ namespace BoltFreezer.PlanTools
                 }
             }
         }
-        /// <summary>
-        /// Clone of Flawque requires clone of individual flaws because these have mutable properties
-        /// </summary>
-        /// <returns></returns>
-        public Flawque Clone()
+
+        // Clone of Flawque requires clone of individual flaws because these have mutable properties
+        public Object Clone()
         {
+
+            // Move open condition to new container and clone each one
             var newOpenConditions = new List<OpenCondition>();
-            //foreach (var oc in OpenConditions.ToList())
             foreach (var oc in OpenConditions)
             {
                 newOpenConditions.Add(oc.Clone());
-                //newOpenConditions.Add(oc);
             }
-            //var openConditionHeap = new Heap<OpenCondition>(HeapType.MinHeap, newOpenConditions);
 
-            // Threatened links are never updated during planning. Thus, they are read-only and need not be cloned.
+            // Move tclfs to new stack, no need to clone.
             var newThreatenedLinks = new Stack<ThreatenedLinkFlaw>();
             foreach (var tclf in threatenedLinks.ToList())
             {
-                //newThreatenedLinks.Add(tclf.Clone());
                 newThreatenedLinks.Push(tclf);
             }
-            //var tclfHeap = new Stack<ThreatenedLinkFlaw>(HeapType.MinHeap, newThreatenedLinks);
 
             return new Flawque(newOpenConditions, newThreatenedLinks);
-            //return new Flawque(openConditionHeap, tclfHeap);
         }
 
     }
