@@ -249,10 +249,10 @@ namespace BoltFreezer.PlanTools
             foreach (IObject ob in objects)
                 newObjects.Add(ob.Clone() as Obj);
 
-            // Create a new list of intention objects.
-            List<IIntention> newIntentions = new List<IIntention>();
-            foreach (IIntention intention in intentions)
-                newIntentions.Add(intention.Clone() as Intention);
+            //// Create a new list of intention objects.
+            //List<IIntention> newIntentions = new List<IIntention>();
+            //foreach (IIntention intention in intentions)
+            //    newIntentions.Add(intention.Clone() as Intention);
 
             // Create a new list of initial state predicate objects.
             List<IPredicate> newInitial = new List<IPredicate>();
@@ -265,7 +265,7 @@ namespace BoltFreezer.PlanTools
                 newGoal.Add(pred.Clone() as Predicate);
 
             // Return the new domain object.
-            return new Problem (newName, newOriginalName, newDomain, newPlayer, newObjects, newInitial, newIntentions, newGoal);
+            return new Problem (newName, newOriginalName, newDomain, newPlayer, newObjects, newInitial, newGoal);
         }
 
         // Returns a hashcode.

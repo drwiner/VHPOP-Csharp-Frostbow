@@ -134,9 +134,6 @@ namespace BoltFreezer.PlanTools
             // find the gorund action that minimizes the heuristic estimate
             foreach (var groundAction in CacheMaps.GetCndts(condition))
             {
-                // same with above: cannot insert a dummy step. These will get inserted when composite step is inserted.
-                if (groundAction.Name.Split(':')[0].Equals("begin") || groundAction.Name.Split(':')[0].Equals("finish"))
-                    continue;
 
                 int thisVal;
                 if (visitedOps.ContainsKey(groundAction))

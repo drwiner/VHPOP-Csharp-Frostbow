@@ -21,8 +21,6 @@ namespace BoltFreezer.PlanTools
         private Graph<IPlanStep> orderings;
         private List<CausalLink<IPlanStep>> causalLinks;
         private Flawque flaws;
-        private int decomps;
-        private int hdepth;
 
         // Access the plan's steps.
         public List<IPlanStep> Steps
@@ -50,18 +48,6 @@ namespace BoltFreezer.PlanTools
         {
             get { return flaws; }
             set { Flaws = value;  }
-        }
-
-        public int Decomps
-        {
-            get { return decomps; }
-            set { decomps = value; }
-        }
-
-        public int Hdepth
-        {
-            get { return hdepth; }
-            set { hdepth = value; }
         }
 
         // Access the plan's initial step.
@@ -147,19 +133,6 @@ namespace BoltFreezer.PlanTools
 
         public void Insert(IPlanStep newStep)
         {
-            if (newStep.Height > 0)
-            {
-                var ns = newStep as ICompositePlanStep;
-                InsertDecomp(ns);
-            }
-            else
-            {
-                InsertPrimitive(newStep);
-            }
-        }
-
-        public void InsertPrimitive(IPlanStep newStep)
-        {
             steps.Add(newStep);
             orderings.Insert(InitialStep, newStep);
             orderings.Insert(newStep, GoalStep);
@@ -169,141 +142,6 @@ namespace BoltFreezer.PlanTools
             {
                 Flaws.Insert(this, new OpenCondition(pre, newStep));
             }
-
-            //Flaws.UpdateFlaws(this, newStep);
-
-            // Don't check for threats when inserting.
-        }
-
-        public void InsertDecomp(ICompositePlanStep newStep)
-        {
-            decomps += 1;
-            var IDMap = new Dictionary<int, IPlanStep>();
-            var dummyInit = newStep.InitialStep.Clone() as IPlanStep;
-            //var dummyInit = new PlanStep(newStep.InitialStep.Clone() as IOperator);
-            IDMap[newStep.InitialStep.ID] = dummyInit;
-            
-            steps.Add(dummyInit);
-            orderings.Insert(InitialStep, dummyInit);
-            orderings.Insert(dummyInit, GoalStep);
-
-            //var dummyGoal = new PlanStep(newStep.GoalStep.Clone() as IOperator);
-            var dummyGoal = newStep.GoalStep.Clone() as IPlanStep;
-            Insert(dummyGoal);
-            IDMap[newStep.GoalStep.ID] = dummyGoal;
-            Orderings.Insert(dummyInit, dummyGoal);
-
-            // is this needed?
-            //var newStepCopy = newStep.Clone();
-            //newStepCopy.InitialStep = dummyInit;
-            //newStepCopy.GoalStep = dummyGoal;
-
-            var newSubSteps = new List<IPlanStep>();
-            
-            foreach (var substep in newStep.SubSteps)
-            {
-                // substep is either a IPlanStep or ICompositePlanStep
-                if (substep.Height > 0)
-                {
-                    var compositeSubStep = new CompositePlanStep(substep.Clone() as ICompositePlanStep)
-                    {
-                        Depth = newStep.Depth + 1
-                    };
-                    Insert(compositeSubStep);
-                    Orderings.Insert(compositeSubStep, dummyGoal);
-                    Orderings.Insert(dummyInit, compositeSubStep);
-                    IDMap[compositeSubStep.CompositeAction.ID] = compositeSubStep;
-                    newSubSteps.Add(compositeSubStep);
-                }
-                else
-                {
-                    var newsubstep = new PlanStep(substep.Clone() as IPlanStep)
-                    {
-                        Depth = newStep.Depth + 1
-                    };
-                    
-                    Insert(newsubstep);
-                    Orderings.Insert(newsubstep, dummyGoal);
-                    Orderings.Insert(dummyInit, newsubstep);
-                    IDMap[newsubstep.Action.ID] = newsubstep;
-                    newSubSteps.Add(newsubstep);
-                }
-                if (newStep.Depth + 1 > Hdepth)
-                {
-                    Hdepth = newStep.Depth + 1;
-                }
-
-            }
-            //var subOrderings = newStep.SubOre
-            foreach (var tupleOrdering in newStep.SubOrderings)
-            {
-                // Don't bother adding orderings to begin and finish. TODO: need to make this implicit via JsonDeserializer
-                if (tupleOrdering.First.Name.Split(':')[0].Equals("begin") || tupleOrdering.First.Name.Split(':')[0].Equals("finish"))
-                    continue;
-                if (tupleOrdering.Second.Name.Split(':')[0].Equals("begin") || tupleOrdering.Second.Name.Split(':')[0].Equals("finish"))
-                    continue;
-                var head = IDMap[tupleOrdering.First.ID];
-                var tail = IDMap[tupleOrdering.Second.ID];
-                //if (head.Height > 0)
-                //{
-                //    var temp = head as ICompositePlanStep;
-                //    head = temp.GoalStep as IPlanStep;
-                //}
-                //if (tail.Height > 0)
-                //{
-                //    var temp = tail as ICompositePlanStep;
-                //    tail = temp.InitialStep as IPlanStep;
-                //}
-                Orderings.Insert(head, tail);
-            }
-
-            foreach (var clink in newStep.SubLinks)
-            {
-                var head = IDMap[clink.Head.ID];
-                var tail = IDMap[clink.Tail.ID];
-                if (head.Height > 0)
-                {
-                    var temp = head as CompositePlanStep;
-                    head = temp.GoalStep as IPlanStep;
-                }
-                if (tail.Height > 0)
-                {
-                    var temp = tail as CompositePlanStep;
-                    tail = temp.InitialStep as IPlanStep;
-                }
-
-                var newclink = new CausalLink<IPlanStep>(clink.Predicate, head, tail);
-                CausalLinks.Add(newclink);
-                foreach (var step in newSubSteps)
-                {
-                    if (step.ID == head.ID || step.ID == tail.ID)
-                    {
-                        continue;
-                    }
-                    if (!CacheMaps.IsThreat(clink.Predicate, step))
-                    {
-                        continue;
-                    }
-                    // step is a threat to need precondition
-                    if (Orderings.IsPath(head, step))
-                    {
-                        continue;
-                    }
-                    if (Orderings.IsPath(step, tail))
-                    {
-                        continue;
-                    }
-                    Flaws.Insert(new ThreatenedLinkFlaw(newclink, step));
-                }
-            }
-
-            foreach (var pre in newStep.OpenConditions)
-            {
-                Flaws.Insert(this, new OpenCondition(pre, dummyInit as IPlanStep));
-            }
-
-            //newStep.dummy
-
         }
 
         public IPlanStep Find(IPlanStep stepClonedFromOpenCondition)
@@ -321,14 +159,6 @@ namespace BoltFreezer.PlanTools
             }
             return Steps.Single(s => s.ID == stepClonedFromOpenCondition.ID);
         }
-
-        //public void DetectThreatsFromComposite(List<IPlanStep> possibleThreats)
-        //{
-        //    foreach (var pt in possibleThreats)
-        //    {
-        //        DetectThreats(pt);
-        //    }
-        //}
 
         public void DetectThreats(IPlanStep possibleThreat)
         {
@@ -353,26 +183,12 @@ namespace BoltFreezer.PlanTools
             }
         }
 
-        public void Repair(OpenCondition oc, IPlanStep repairStep)
-        {
-            if (repairStep.Height > 0)
-            {
-                RepairWithComposite(oc, repairStep as CompositePlanStep);
-            }
-            else
-            {
-                RepairWithPrimitive(oc, repairStep);
-            }
-        }
 
-        public void RepairWithPrimitive(OpenCondition oc, IPlanStep repairStep)
+        public void Repair(OpenCondition oc, IPlanStep repairStep)
         {
             // oc = <needStep, needPrecond>. Need to find needStep in plan, because open conditions have been mutated before arrival.
             var needStep = Find(oc.step);
-
-            //// we are fulfilling open conditions because open conditions can be used to add flaws. Right now, this step is unnecessary.
-            if (!needStep.Name.Split(':')[0].Equals("begin") && !needStep.Name.Split(':')[0].Equals("finish"))
-                needStep.Fulfill(oc.precondition);
+            needStep.Fulfill(oc.precondition);
 
             orderings.Insert(repairStep, needStep);
             var clink = new CausalLink<IPlanStep>(oc.precondition as Predicate, repairStep, needStep);
@@ -401,39 +217,6 @@ namespace BoltFreezer.PlanTools
             }
         }
 
-        public void RepairWithComposite(OpenCondition oc, CompositePlanStep repairStep)
-        {
-            // oc = <needStep, needPrecond>. Need to find needStep in plan, because open conditions have been mutated before arrival.
-            var needStep = Find(oc.step);
-            if (!needStep.Name.Split(':')[0].Equals("begin") && !needStep.Name.Split(':')[0].Equals("finish"))
-                needStep.Fulfill(oc.precondition);
-            
-            orderings.Insert(repairStep.GoalStep as IPlanStep, needStep);
-            var clink = new CausalLink<IPlanStep>(oc.precondition as Predicate, repairStep.GoalStep as IPlanStep, needStep);
-            causalLinks.Add(clink);
-
-            foreach (var step in Steps)
-            {
-                if (step.ID == repairStep.ID || step.ID == needStep.ID)
-                {
-                    continue;
-                }
-                if (!CacheMaps.IsThreat(oc.precondition, step))
-                {
-                    continue;
-                }
-                // step is a threat to need precondition
-                if (Orderings.IsPath(needStep, step))
-                {
-                    continue;
-                }
-                if (Orderings.IsPath(step, repairStep.InitialStep as IPlanStep))
-                {
-                    continue;
-                }
-                Flaws.Insert(new ThreatenedLinkFlaw(clink, step));
-            }
-        }
 
         // Return the first state of the plan.
         public State GetFirstState ()
@@ -468,7 +251,7 @@ namespace BoltFreezer.PlanTools
             return sb.ToString();
         }
 
-        // Displays the contents of the plan.
+        // Displays the contents of the plan. THIS IS BROKEN
         public string ToStringOrdered ()
         {
             StringBuilder sb = new StringBuilder();
@@ -490,11 +273,6 @@ namespace BoltFreezer.PlanTools
                 newSteps.Add(step.Clone() as IPlanStep);
             }
 
-            // these are static read only things
-            //IState newInitial = initial.Clone() as IState;
-            //IState newGoal = goal.Clone() as IState;
-
-
             IPlanStep newInitialStep = initialStep.Clone() as IPlanStep;
             // need clone of goal step because this as fulfillable conditions
             IPlanStep newGoalStep = goalStep.Clone() as IPlanStep;
@@ -507,18 +285,13 @@ namespace BoltFreezer.PlanTools
             foreach (var cl in causalLinks)
             {
                 newLinks.Add(cl as CausalLink<IPlanStep>);
-                //newLinks.Add(cl.Clone() as CausalLink<IPlanStep>);
             }
 
             // Inherit all flaws, must clone very flaw
             Flawque flawList = flaws.Clone();
 
             //return new Plan(newSteps, newInitial, newGoal, newInitialStep, newGoalStep, newOrderings, newLinks, flawList);
-            return new Plan(newSteps, Initial, Goal, newInitialStep, newGoalStep, newOrderings, newLinks, flawList)
-            {
-                Hdepth = hdepth,
-                Decomps = decomps
-            };
+            return new Plan(newSteps, Initial, Goal, newInitialStep, newGoalStep, newOrderings, newLinks, flawList);
         }
     }
 }

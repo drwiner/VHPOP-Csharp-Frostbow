@@ -13,19 +13,13 @@ namespace BoltFreezer.PlanSpace
     public class PlanSpacePlanner : IPlanner
     {
         private IFrontier frontier;
-        //private Func<IPlan, float> heuristic;
-        //private IHeuristic heuristic;
         private ISelection selection;
-        //private SearchType search;
         private ISearch search;
-        //private Func<IPlanner, int, float, List<IPlan>> search;
+
         private bool console_log;
         private int opened, expanded = 0;
         public int problemNumber;
         public string directory;
-
-        // TODO: keep track of plan-space search tree and not just frontier
-        //private List<PlanSpaceEdge> PlanSpaceGraph;
 
         public bool Console_log
         {
@@ -102,28 +96,9 @@ namespace BoltFreezer.PlanSpace
                 
             foreach(var cndt in CacheMaps.GetCndts(oc.precondition))
             {
-                if (cndt == null)
-                    continue;
-                // only possible for reading in python json
-                if (cndt.ID == plan.InitialStep.Action.ID)
-                    continue;
-                // same with above: cannot insert a dummy step. These will get inserted when composite step is inserted.
-                if (cndt.Name.Split(':')[0].Equals("begin") || cndt.Name.Split(':')[0].Equals("finish"))
-                    continue;
-                //if (cndt.Height > 0)
-                //    continue;
-
                 var planClone = plan.Clone() as IPlan;
-                IPlanStep newStep;
-                if (cndt.Height > 0)
-                {
-                    newStep = new CompositePlanStep(cndt.Clone() as IComposite);
-                }
-                else
-                {
-                    newStep = new PlanStep(cndt.Clone() as IOperator);
-                }
-                //newStep.Height = cndt.Height;
+                var newStep = new PlanStep(cndt.Clone() as IOperator);
+
                 planClone.Insert(newStep);
                 planClone.Repair(oc, newStep);
 
@@ -143,11 +118,6 @@ namespace BoltFreezer.PlanSpace
                 planClone.Repair(oc, planClone.InitialStep);
                 Insert(planClone);
                 
-            }
-
-            if (oc.step.Name.Split(':')[0].Equals("finish"))
-            {
-                Console.WriteLine("");
             }
 
             foreach (var step in plan.Steps)
@@ -195,20 +165,15 @@ namespace BoltFreezer.PlanSpace
         public void WriteToFile(long elapsedMs, Plan plan) {
             var primitives = plan.Steps.FindAll(step => step.Height == 0).Count;
             var composites = plan.Steps.FindAll(step => step.Height > 0).Count;
-            var decomps = plan.Decomps;
             var namedData = new List<Tuple<string, string>>
                         {
                             new Tuple<string, string>("problem", problemNumber.ToString()),
                             new Tuple<string, string>("selection", selection.ToString()),
-                            //new Tuple<string, string>("heuristic", heuristic.ToString()),
                             new Tuple<string, string>("search", search.ToString()),
                             new Tuple<string,string>("runtime", elapsedMs.ToString()),
                             new Tuple<string, string>("opened", opened.ToString()),
                             new Tuple<string, string>("expanded", expanded.ToString()),
                             new Tuple<string, string>("primitives", primitives.ToString() ),
-                            new Tuple<string, string>("decomps", decomps.ToString() ),
-                            new Tuple<string, string>("composites", composites.ToString() ),
-                            new Tuple<string, string>("hdepth", plan.Hdepth.ToString() )
                         };
 
             var file = directory + problemNumber.ToString() + "-" + search.ToString() + "-" + selection.ToString() + ".txt";

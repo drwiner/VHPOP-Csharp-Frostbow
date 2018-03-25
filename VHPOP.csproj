@@ -70,8 +70,6 @@
   <ItemGroup>
     <Compile Include="CacheTools\ProblemFreezer.cs" />
     <Compile Include="Enums\SelectionType.cs" />
-    <Compile Include="FileIO\JsonProblemDeserializer.cs" />
-    <Compile Include="FileIO\SimpleJson.cs" />
     <Compile Include="Interfaces\ISelection.cs" />
     <Compile Include="PlanTools\Selection.cs" />
     <Compile Include="Utilities\BinaryHeap.cs" />
@@ -87,15 +85,12 @@
     <Compile Include="FileIO\Writer.cs" />
     <Compile Include="CacheTools\GroundActionFactory.cs" />
     <Compile Include="Interfaces\IAxiom.cs" />
-    <Compile Include="Interfaces\IComposite.cs" />
-    <Compile Include="Interfaces\ICompositePlanStep.cs" />
     <Compile Include="Interfaces\IDependency.cs" />
     <Compile Include="Interfaces\IDomain.cs" />
     <Compile Include="Interfaces\IFlaw.cs" />
     <Compile Include="Interfaces\IFrontier.cs" />
     <Compile Include="Interfaces\IHeuristic.cs" />
     <Compile Include="Interfaces\IIntention.cs" />
-    <Compile Include="Interfaces\IMediationEdge.cs" />
     <Compile Include="Interfaces\IPlanner.cs" />
     <Compile Include="Interfaces\IPlanStep.cs" />
     <Compile Include="Interfaces\IObject.cs" />
@@ -106,13 +101,9 @@
     <Compile Include="Interfaces\ISearch.cs" />
     <Compile Include="Interfaces\IState.cs" />
     <Compile Include="Interfaces\ITerm.cs" />
-    <Compile Include="PlanSpace\PlanSpaceEdge.cs" />
-    <Compile Include="PlanSpace\PlanSpaceNode.cs" />
     <Compile Include="PlanSpace\PlanSpacePlanner.cs" />
     <Compile Include="PlanTools\Axiom.cs" />
     <Compile Include="PlanTools\CausalLink.cs" />
-    <Compile Include="PlanTools\Composite.cs" />
-    <Compile Include="PlanTools\CompositePlanStep.cs" />
     <Compile Include="PlanTools\Frontier.cs" />
     <Compile Include="PlanTools\PlanStep.cs" />
     <Compile Include="PlanTools\Domain.cs" />
@@ -120,7 +111,6 @@
     <Compile Include="PlanTools\Flawque.cs" />
     <Compile Include="PlanTools\Graph.cs" />
     <Compile Include="PlanTools\Heuristic.cs" />
-    <Compile Include="PlanTools\Intention.cs" />
     <Compile Include="PlanTools\Obj.cs" />
     <Compile Include="PlanTools\Operator.cs" />
     <Compile Include="PlanTools\Plan.cs" />
@@ -139,9 +129,6 @@
     <Compile Include="PriorityQueue\SimplePriorityQueue.cs" />
     <Compile Include="PriorityQueue\StablePriorityQueue.cs" />
     <Compile Include="PriorityQueue\StablePriorityQueueNode.cs" />
-    <Compile Include="StateSpace\PlanSimulator.cs" />
-    <Compile Include="StateSpace\StateSpaceEdge.cs" />
-    <Compile Include="StateSpace\StateSpaceNode.cs" />
     <Compile Include="Utilities\EnumerableExtension.cs" />
     <Compile Include="Utilities\PredicateComparer.cs" />
     <Compile Include="Utilities\PredicateListComparer.cs" />

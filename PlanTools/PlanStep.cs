@@ -11,7 +11,6 @@ namespace BoltFreezer.PlanTools
         private static int Counter = -1;
         private IOperator action;
         private List<IPredicate> openConditions;
-        private int depth = 0;
 
         private int id;
 
@@ -30,12 +29,6 @@ namespace BoltFreezer.PlanTools
         {
             get { return Action.Height; }
             set { Action.Height = value; }
-        }
-
-        public int Depth
-        {
-            get { return depth; }
-            set { depth = value; }
         }
 
         // Access the operator's preconditions.
@@ -177,10 +170,7 @@ namespace BoltFreezer.PlanTools
         // the clone doesn't need to mutate the underlying action (Action)
         public Object Clone()
         {
-            return new PlanStep(Action, OpenConditions, ID)
-            {
-                Depth = depth
-            };
+            return new PlanStep(Action, OpenConditions, ID);
         }
 
         public string TermAt(int position)

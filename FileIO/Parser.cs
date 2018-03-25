@@ -16,7 +16,7 @@ namespace BoltFreezer.FileIO
 {
     public static class Parser
     {
-        public static string path = @"D:\Documents\Frostbow\Frostbow\Assets\Scripts\BoltFreezer\";
+        public static string path = @"D:\Documents\Frostbow\VHPOP\";
 
         // Returns the project's top directory as a string.
         public static string GetTopDirectory ()
@@ -760,63 +760,33 @@ namespace BoltFreezer.FileIO
                     {
                         if (words[i][0] == '(')
                         {
-                            // Check for an intention predicate.
-                            if (words[i].Equals("(intends"))
+                           
+                            // Create a new predicate object.
+                            Predicate pred = new Predicate();
+
+                            // Check for a negative predicate.
+                            if (words[i].Equals("(not"))
                             {
-                                // Create a new intention object.
-                                Intention intends = new Intention();
+                                // Iterate the counter.
+                                i++;
 
-                                // Add the character to the intention object.
-                                intends.Character = words[++i];
+                                // Set the predicate's sign to false.
+                                pred.Sign = false;
+                            }
 
-                                // Check for a negative predicate.
-                                if (words[++i].Equals("(not"))
-                                {
-                                    // Iterate the counter.
+                            // Set the predicate's name.
+                            pred.Name = Regex.Replace(words[i++], @"\t|\n|\r|[()]", "");
+
+                            // Add the predicates's terms.
+                            while (words[i][0] != '(')
+                                if (!Regex.Replace(words[i], @"\t|\n|\r|[()]", "").Equals(""))
+                                    pred.Terms.Add(new Term("", Regex.Replace(words[i++], @"\t|\n|\r|[()]", "")));
+                                else
                                     i++;
 
-                                    // Set the predicate's sign to false.
-                                    intends.Predicate.Sign = false;
-                                }
-
-                                // Set the predicate's name.
-                                intends.Predicate.Name = Regex.Replace(words[i++], @"\t|\n|\r|[()]", "");
-
-                                // Add the predicates's terms.
-                                while (words[i][0] != '(')
-                                    intends.Predicate.Terms.Add(new Term("", Regex.Replace(words[i++], @"\t|\n|\r|[()]", "")));
-
-                                // Add the intention to the problem.
-                                problem.Intentions.Add(intends.Clone() as Intention);
-                            }
-                            else
-                            {
-                                // Create a new predicate object.
-                                Predicate pred = new Predicate();
-
-                                // Check for a negative predicate.
-                                if (words[i].Equals("(not"))
-                                {
-                                    // Iterate the counter.
-                                    i++;
-
-                                    // Set the predicate's sign to false.
-                                    pred.Sign = false;
-                                }
-
-                                // Set the predicate's name.
-                                pred.Name = Regex.Replace(words[i++], @"\t|\n|\r|[()]", "");
-
-                                // Add the predicates's terms.
-                                while (words[i][0] != '(')
-                                    if (!Regex.Replace(words[i], @"\t|\n|\r|[()]", "").Equals(""))
-                                        pred.Terms.Add(new Term("", Regex.Replace(words[i++], @"\t|\n|\r|[()]", "")));
-                                    else
-                                        i++;
-
-                                // Add the predicate to the initial state.
-                                problem.Initial.Add(pred);
-                            }
+                            // Add the predicate to the initial state.
+                            problem.Initial.Add(pred);
+                            
                         }
                     }
 

@@ -10,12 +10,6 @@ namespace BoltFreezer.Interfaces
 {
     public interface IPlan
     {
-        // Plans do not need their own domain and problem.
-        //// Plans have a domain.
-        //Domain Domain { get; set; }
-
-        //// Plans have a problem.
-        //Problem Problem { get; set; }
 
         // Plans have an ordered list of steps.
         List<IPlanStep> Steps { get; set; }
@@ -39,10 +33,6 @@ namespace BoltFreezer.Interfaces
         // Keep track of flaws in each plan.
         Flawque Flaws { get; set; }
 
-        int Decomps { get; set; }
-
-        int Hdepth { get; set; }
-
         // Insert step
         void Insert(IPlanStep newStep);
 
@@ -53,8 +43,6 @@ namespace BoltFreezer.Interfaces
         void DetectThreats(IPlanStep newStep);
 
         IPlanStep Find(IPlanStep stepClonedFromOpenCondition);
-
-        //void DetectThreatsFromComposite(List<IPlanStep> possibleThreats);
 
         // The plan can be cloned.
         Object Clone();

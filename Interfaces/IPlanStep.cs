@@ -14,8 +14,6 @@ namespace BoltFreezer.Interfaces
         // Identification
         new int ID { get; }
 
-        int Depth { get; set; }
-
         // Actions keep track of open preconditions
         List<IPredicate> OpenConditions { get; set; }
 

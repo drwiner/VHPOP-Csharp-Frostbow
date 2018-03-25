@@ -35,7 +35,7 @@ namespace BoltFreezer.PlanTools
                 var plan = IP.Frontier.Dequeue();
                 IP.Expanded++;
                 var flaw = plan.Flaws.Next();
-                Console.WriteLine(plan.Decomps);
+
                 if (IP.Console_log)
                 {
                     Console.WriteLine(plan);

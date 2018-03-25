@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoltFreezer", "BoltFreezer.csproj", "{515D1F37-179F-45C5-8CAD-99E61DD7ED84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VHPOP", "VHPOP.csproj", "{515D1F37-179F-45C5-8CAD-99E61DD7ED84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFreezer", "TestFreezer\TestFreezer.csproj", "{910D6BB0-EF5C-4312-A9FC-2562BAF46963}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestVHPOP", "TestFreezer\TestVHPOP.csproj", "{910D6BB0-EF5C-4312-A9FC-2562BAF46963}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
