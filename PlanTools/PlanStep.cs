@@ -72,6 +72,8 @@ namespace BoltFreezer.PlanTools
         {
             action = planStep.Action as IOperator;
             id = System.Threading.Interlocked.Increment(ref Counter);
+
+            // Generate open conditions to fulfill
             openConditions = new List<IPredicate>();
             foreach (var precondition in planStep.OpenConditions)
             {
@@ -83,6 +85,8 @@ namespace BoltFreezer.PlanTools
         {
             action = groundAction;
             id = _id;
+
+            // Copy open conditions from existing plan step
             openConditions = new List<IPredicate>();
             foreach (var precondition in ocs)
             {
@@ -94,6 +98,11 @@ namespace BoltFreezer.PlanTools
         {
             action = groundAction;
             id = _id;
+            openConditions = new List<IPredicate>();
+            foreach (var precondition in groundAction.Preconditions)
+            {
+                openConditions.Add(precondition);
+            }
         }
 
         public PlanStep(IPlanStep planStep, int _id)
@@ -107,6 +116,7 @@ namespace BoltFreezer.PlanTools
             }
         }
 
+        // Removes an open condition
         public void Fulfill(IPredicate condition)
         {
             if (!action.Preconditions.Contains(condition))

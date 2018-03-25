@@ -140,7 +140,7 @@ namespace BoltFreezer.PlanTools
             // Add new flaws
             foreach (var pre in newStep.OpenConditions)
             {
-                Flaws.Insert(this, new OpenCondition(pre, newStep));
+                Flaws.Add(this, new OpenCondition(pre, newStep));
             }
         }
 
@@ -179,7 +179,7 @@ namespace BoltFreezer.PlanTools
                     continue;
                 }
                 
-                Flaws.Insert(new ThreatenedLinkFlaw(clink, possibleThreat));
+                Flaws.Add(new ThreatenedLinkFlaw(clink, possibleThreat));
             }
         }
 
@@ -213,7 +213,7 @@ namespace BoltFreezer.PlanTools
                 {
                     continue;
                 }
-                Flaws.Insert(new ThreatenedLinkFlaw(clink, step));
+                Flaws.Add(new ThreatenedLinkFlaw(clink, step));
             }
         }
 

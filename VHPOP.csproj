@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="CacheTools\ProblemFreezer.cs" />
     <Compile Include="Enums\SelectionType.cs" />
+    <Compile Include="Interfaces\IFlawLibrary.cs" />
     <Compile Include="Interfaces\ISelection.cs" />
     <Compile Include="PlanTools\Selection.cs" />
     <Compile Include="Utilities\BinaryHeap.cs" />

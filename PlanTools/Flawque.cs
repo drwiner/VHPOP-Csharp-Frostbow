@@ -8,18 +8,17 @@ using System;
 
 namespace BoltFreezer.PlanTools
 {
-
-    public class Flawque
+    // A Flawque is a flaw selection queue, has the .Next Property
+    public class Flawque : IFlawLibrary
     {
-        // cannot use heap because the values are mutable and won't be kept sorted unless they are all re-inserted. If we have to do that, there's no benefit
+        // Cannot use heap because the values are mutable and won't be kept sorted unless they are all re-inserted. If we have to do that, there's no benefit
         public List<OpenCondition> OpenConditions;
-
-        //private Heap<OpenCondition> openConditions;
+        
+        // LIFO
         private Stack<ThreatenedLinkFlaw> threatenedLinks;
 
         public Flawque()
         {
-            //openConditions = new Heap<OpenCondition>(HeapType.MinHeap);
             OpenConditions = new List<OpenCondition>();
             threatenedLinks = new Stack<ThreatenedLinkFlaw>();
         }
@@ -31,38 +30,37 @@ namespace BoltFreezer.PlanTools
             threatenedLinks = tclfs;
         }
 
-        public void Insert(Plan plan, OpenCondition oc)
+        public void Add(IPlan plan, OpenCondition oc)
         {
-            // don't add an open condition if it's already in the plan.
+            // Don't add an open condition if it's already in the Flawque.
             if (OpenConditions.Contains(oc))
                 return;
 
-            // Static? 
+            // Predicates are labeled as static before planning
             if (GroundActionFactory.Statics.Contains(oc.precondition))
             {
                 oc.isStatic = true;
                 return;
             }
 
-            //var stepToLookAt = plan.Find(oc.Ste)
-            // accumulate risks and cndts
+            // Calculate risks and cndts
             foreach (var step in plan.Steps)
             {
                 
                 if (step.ID == oc.step.ID)
                     continue;
+
                 if (plan.Orderings.IsPath(oc.step, step))
                     continue;
-                // CHECK THAT THIS WORKS AS INTENDED: or else I will have created a causal and threat map
+
                 if (CacheMaps.IsCndt(oc.precondition, step))
                     oc.cndts += 1;
 
                 if (CacheMaps.IsThreat(oc.precondition, step))
-                //if (step.Effects.Any(x => oc.precondition.IsInverse(x)))
                     oc.risks += 1;
 
             }
-            //Debug.Log(plan.Initial);
+
 
             if (oc.risks == 0 && plan.Initial.InState(oc.precondition))
             {
@@ -73,7 +71,7 @@ namespace BoltFreezer.PlanTools
             //openConditions.Insert(oc);
         }
 
-        public void Insert(ThreatenedLinkFlaw tclf)
+        public void Add(ThreatenedLinkFlaw tclf)
         {
 
             threatenedLinks.Push(tclf);

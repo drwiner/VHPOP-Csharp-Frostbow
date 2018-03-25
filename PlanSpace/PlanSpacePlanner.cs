@@ -65,7 +65,7 @@ namespace BoltFreezer.PlanSpace
         {
             var initialPlan = new Plan(new State(PF.testProblem.Initial) as IState, new State(PF.testProblem.Goal) as IState);
             foreach (var goal in PF.testProblem.Goal)
-                initialPlan.Flaws.Insert(initialPlan, new OpenCondition(goal, initialPlan.GoalStep as IPlanStep));
+                initialPlan.Flaws.Add(initialPlan, new OpenCondition(goal, initialPlan.GoalStep as IPlanStep));
             initialPlan.Orderings.Insert(initialPlan.InitialStep, initialPlan.GoalStep);
             return initialPlan;
         }
