@@ -77,8 +77,6 @@ namespace BoltFreezer.PlanSpace
                 frontier.Enqueue(plan, Score(plan));
                 opened++;
             }
-            else
-                Console.WriteLine("CHeck");
         }
 
         public float Score(IPlan plan)
@@ -102,16 +100,19 @@ namespace BoltFreezer.PlanSpace
                 planClone.Insert(newStep);
                 planClone.Repair(oc, newStep);
 
-                // check if inserting new Step (with orderings given by Repair) add cndts/risks to existing open conditions, affecting their status in the heap
+                // Check if inserting new Step (with orderings given by Repair) add cndts/risks to existing open conditions, affecting their status in the heap
                 //planClone.Flaws.UpdateFlaws(planClone, newStep);
+
+                // Detect if this new step threatens existing causal links
                 planClone.DetectThreats(newStep);
+
                 Insert(planClone);
             }
         }
 
         public void Reuse(IPlan plan, OpenCondition oc)
         {
-            // if repaired by initial state
+            // If repaired by initial state
             if (plan.Initial.InState(oc.precondition))
             {
                 var planClone = plan.Clone() as IPlan;
@@ -120,19 +121,27 @@ namespace BoltFreezer.PlanSpace
                 
             }
 
+            // For each existing step, check if it is a candidate for repair
             foreach (var step in plan.Steps)
             {
                 if (oc.step.ID == step.ID)
                 {
                     continue;
                 }
+
                 if (CacheMaps.IsCndt(oc.precondition, step)){
-                    // before adding a repair, check if there is a path.
+
+                    // Before adding a repair, check if there is a path.
                     if (plan.Orderings.IsPath(oc.step, step))
                         continue;
                     
+                    // Create child plan-space node
                     var planClone = plan.Clone() as IPlan;
+
+                    // Make repair, check if new causal link is threatened
                     planClone.Repair(oc, step);
+
+                    // Insert plan as child on search frontier
                     Insert(planClone);
                 }
             }
