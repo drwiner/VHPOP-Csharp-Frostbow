@@ -228,7 +228,9 @@ namespace BoltFreezer.PlanTools
         {
             List<IPlanStep> sortedList = new List<IPlanStep>();
 
-            foreach (var item in Orderings.TopoSort(InitialStep))
+            var topoSort = Orderings.TopoSort(InitialStep);
+
+            foreach (var item in topoSort)
             {
                 if (item.Equals(InitialStep) || item.Equals(GoalStep))
                     continue;
@@ -256,7 +258,8 @@ namespace BoltFreezer.PlanTools
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (var step in TopoSort())
+            var topoSort = TopoSort();
+            foreach (var step in topoSort)
                 sb.AppendLine(step.ToString());
 
             return sb.ToString();

@@ -19,6 +19,10 @@ namespace TestVHPOP
                 problemNumber = problem,
             };
             var Solutions = POP.Solve(k, cutoff);
+            if (Solutions != null)
+            {
+                Solutions[0].ToStringOrdered();
+            }
         }
 
 

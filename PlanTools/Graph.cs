@@ -184,7 +184,7 @@ namespace BoltFreezer.PlanTools
                 foreach (var nmEdge in edgesFromN)
                 {
                     markedForRemoval.Remove(nmEdge);
-                    if (!edgeList.Any(e => e.Second.Equals(nmEdge.First)))
+                    if (!markedForRemoval.Any(e => e.Second.Equals(nmEdge.Second)))
                         S.Push(nmEdge.Second);
                 }
                 edgeList = markedForRemoval;

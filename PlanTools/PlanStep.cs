@@ -148,10 +148,10 @@ namespace BoltFreezer.PlanTools
             {
                 return true;
             }
-            if (step.Action.ID == Action.ID)
-            {
-                return true;
-            }
+            //if (step.Action.ID == Action.ID)
+            //{
+            //    return true;
+            //}
 
             return false;
         }
