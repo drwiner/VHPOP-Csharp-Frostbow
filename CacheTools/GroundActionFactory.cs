@@ -15,6 +15,8 @@ namespace BoltFreezer.PlanTools
 
         public static List<IOperator> GroundActions;
         private static Hashtable typeDict;
+        private static List<IPredicate> Init;
+        private static HashSet<string> NonStaticPredicates;
 
         // Those predicates which are not established by an effect of an action but which are a precondition. They either hold initially or not at all.
         public static List<IPredicate> Statics = new List<IPredicate>();
@@ -24,6 +26,15 @@ namespace BoltFreezer.PlanTools
             GroundActions = new List<IOperator>();
             GroundLibrary = new Dictionary<int, IOperator>();
             typeDict = _prob.TypeList;
+            Init = _prob.Initial;
+            NonStaticPredicates = new HashSet<string>();
+            foreach (var op in ops)
+            {
+                foreach(var eff in op.Effects)
+                {
+                    NonStaticPredicates.Add(eff.Name);
+                }
+            }
             FromOperators(ops);
         }
 
@@ -42,10 +53,32 @@ namespace BoltFreezer.PlanTools
                 var opClone = op.Clone() as Operator;
                 var termStringList = from term in opClone.Terms select term.Variable;
                 var constantStringList = from objConst in combination select objConst.Name;
-
                 opClone.AddBindings(termStringList.ToList(), constantStringList.ToList());
+
+                if (opClone.Name.Equals("move-to-open"))
+                {
+                    Console.Write("Hc");
+                }
+                var legal = true;
+                foreach (var precon in opClone.Preconditions)
+                {
+                    if (!NonStaticPredicates.Contains(precon.Name))
+                    {
+                        // this predicate is static
+                        if (!Init.Contains(precon))
+                        {
+                            legal = false;
+                            break;
+                        }
+                    }
+                }
+                if (!legal)
+                {
+                    continue;
+                }
+
                 //Debug.Log("operator: " + opClone.ToString());
-                
+
                 // this ensures that this ground operator has a unique ID
                 var groundOperator = new Operator(opClone.Name, opClone.Terms, opClone.Bindings, opClone.Preconditions, opClone.Effects);
                 

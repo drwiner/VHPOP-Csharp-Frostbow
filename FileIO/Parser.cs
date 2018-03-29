@@ -16,7 +16,7 @@ namespace BoltFreezer.FileIO
 {
     public static class Parser
     {
-        public static string path = @"D:\Documents\Frostbow\VHPOP\";
+        public static string path = @"D:\documents\frostbow\vhpop-csharp-frostbow\";
 
         // Returns the project's top directory as a string.
         public static string GetTopDirectory ()
@@ -787,6 +787,10 @@ namespace BoltFreezer.FileIO
                             // Add the predicate to the initial state.
                             problem.Initial.Add(pred);
                             
+                        }
+                        else
+                        {
+                            i++;
                         }
                     }
 

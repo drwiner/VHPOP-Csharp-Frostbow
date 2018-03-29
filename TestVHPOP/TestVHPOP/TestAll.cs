@@ -21,7 +21,7 @@ namespace TestVHPOP
             var Solutions = POP.Solve(k, cutoff);
             if (Solutions != null)
             {
-                Solutions[0].ToStringOrdered();
+                Console.WriteLine(Solutions[0].ToStringOrdered());
             }
         }
 
@@ -34,14 +34,14 @@ namespace TestVHPOP
             var cutoff = 6000f;
             var k = 1;
 
-            var testDomainName = "batman";
-            var testDomainDirectory = Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl";
-            var testDomain = Parser.GetDomain(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl", PlanType.PlanSpace);
-            var testProblem = Parser.GetProblem(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\prob01.pddl");
+            var testDomainName = "snake";
+            var testDomainDirectory = Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\snake.pddl";
+            var testDomain = Parser.GetDomain(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\snake.pddl", PlanType.PlanSpace);
+            var testProblem = Parser.GetProblem(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\snake.prob01.pddl");
 
             var problemFreezer = new ProblemFreezer(testDomainName, testDomainDirectory, testDomain, testProblem);
 
-            //problemFreezer.Serialize();
+            problemFreezer.Serialize();
             problemFreezer.Deserialize();
 
             var initPlan = PlanSpacePlanner.CreateInitialPlan(problemFreezer);
@@ -50,6 +50,8 @@ namespace TestVHPOP
             //RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new NumOpenConditionsHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new DFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new BFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
+
+            Console.ReadLine();
         }
     }
 }

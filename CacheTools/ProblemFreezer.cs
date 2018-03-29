@@ -53,7 +53,9 @@ namespace BoltFreezer.CacheTools
             //BinarySerializer.SerializeObject(FileName, GroundActionFactory.GroundActions);
             foreach (var op in GroundActionFactory.GroundActions)
             {
+                Console.WriteLine(op);
                 BinarySerializer.SerializeObject(FileName + op.GetHashCode().ToString() + ".CachedOperator", op);
+
             }
 
             CacheMaps.CacheLinks(GroundActionFactory.GroundActions);
