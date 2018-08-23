@@ -134,6 +134,7 @@
     <Compile Include="Utilities\PredicateComparer.cs" />
     <Compile Include="Utilities\PredicateListComparer.cs" />
     <Compile Include="Utilities\Tuple.cs" />
+    <Compile Include="Utilities\TupleMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".git\COMMIT_EDITMSG" />

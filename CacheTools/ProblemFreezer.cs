@@ -2,6 +2,7 @@
 using BoltFreezer.FileIO;
 using BoltFreezer.Interfaces;
 using BoltFreezer.PlanTools;
+using BoltFreezer.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,9 +49,22 @@ namespace BoltFreezer.CacheTools
 
         public void Serialize()
         {
-            Console.Write("Creating Ground Operators");
-            GroundActionFactory.PopulateGroundActions(testDomain.Operators, testProblem);
+            Console.WriteLine("Creating Ground Operators");
+            GroundActionFactory.PopulateGroundActions(testDomain, testProblem);
+            //.Operators, testDomain.ObjectTypes, testProblem.ObjectsByType);
             //BinarySerializer.SerializeObject(FileName, GroundActionFactory.GroundActions);
+
+            // Remove existing cached operators in this domain
+            //var di = new DirectoryInfo(Parser.GetTopDirectory() + @"Cached\CachedOperators\");
+            //foreach(var file in di.GetFiles())
+            //{
+            //    var isRightDomain = file.ToString().StartsWith(testDomainName);
+            //    if (file.Extension.Equals(".CachedOperator") && isRightDomain)
+            //    {
+            //        file.Delete();
+            //    }
+            //}
+
             foreach (var op in GroundActionFactory.GroundActions)
             {
                 BinarySerializer.SerializeObject(FileName + op.GetHashCode().ToString() + ".CachedOperator", op);
@@ -58,8 +72,9 @@ namespace BoltFreezer.CacheTools
 
             CacheMaps.CacheLinks(GroundActionFactory.GroundActions);
             CacheMaps.CacheGoalLinks(GroundActionFactory.GroundActions, testProblem.Goal);
-            BinarySerializer.SerializeObject(CausalMapFileName + ".CachedCausalMap", CacheMaps.CausalMap);
-            BinarySerializer.SerializeObject(ThreatMapFileName + ".CachedThreatMap", CacheMaps.ThreatMap);
+
+            BinarySerializer.SerializeObject(CausalMapFileName + ".CachedCausalMap", CacheMaps.CausalTupleMap);
+            BinarySerializer.SerializeObject(ThreatMapFileName + ".CachedThreatMap", CacheMaps.ThreatTupleMap);
         }
 
         public void Deserialize()
@@ -75,21 +90,22 @@ namespace BoltFreezer.CacheTools
             // THIS is so that initial and goal steps created don't get matched with these
             Operator.SetCounterExternally(GroundActionFactory.GroundActions.Count + 1);
 
-            Console.WriteLine("\nCmap\n");
-
-            var cmap = BinarySerializer.DeSerializeObject<Dictionary<IPredicate, List<int>>>(CausalMapFileName + ".CachedCausalMap");
-            CacheMaps.CausalMap = cmap;
-
-            Console.WriteLine("\nTmap\n");
-            var tcmap = BinarySerializer.DeSerializeObject<Dictionary<IPredicate, List<int>>>(ThreatMapFileName + ".CachedThreatMap");
-            CacheMaps.ThreatMap = tcmap;
-
             Console.WriteLine("Finding Statics");
-            GroundActionFactory.DetectStatics(CacheMaps.CausalMap, CacheMaps.ThreatMap);
+            GroundActionFactory.DetectStatics();
             foreach (var stat in GroundActionFactory.Statics)
             {
                 Console.WriteLine(stat);
             }
+
+            Console.WriteLine("\nCmap\n");
+
+            var cmap = BinarySerializer.DeSerializeObject<TupleMap<IPredicate, List<int>>>(CausalMapFileName + ".CachedCausalMap");
+            CacheMaps.CausalTupleMap = cmap;
+
+            Console.WriteLine("\nTmap\n");
+            var tcmap = BinarySerializer.DeSerializeObject<TupleMap<IPredicate, List<int>>>(ThreatMapFileName + ".CachedThreatMap");
+            CacheMaps.ThreatTupleMap = tcmap;
+
         }
 
         public void FreezeProblem(bool serialize, bool deserialize)
