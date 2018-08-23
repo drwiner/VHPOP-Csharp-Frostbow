@@ -208,6 +208,13 @@ namespace BoltFreezer.PlanSpace
                 {
                     writer.WriteLine(dataItem.First + "\t" + dataItem.Second);
                 }
+                writer.WriteLine("\n");
+                writer.WriteLine(plan.ToStringOrdered());
+                writer.WriteLine("\nOrderings:\n");
+                foreach (var ord in plan.Orderings.edges)
+                {
+                    writer.WriteLine(ord.ToString());
+                }
             }
         }
 

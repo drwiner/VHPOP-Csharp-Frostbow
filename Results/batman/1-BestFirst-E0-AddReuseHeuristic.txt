@@ -5,3 +5,29 @@ runtime	246
 opened	1147
 expanded	30
 primitives	5
+
+
+(interrogate-character batman joker gothampd)
+(move-location batman 52ndst gothampd)
+(place-victim henchman1 harvey car1 52ndst)
+(place-victim henchman2 rachel car2 avex)
+(save-character batman harvey rachel 52ndst)
+
+
+Orderings:
+
+((initial), (goal))
+((initial), (save-character batman harvey rachel 52ndst))
+((save-character batman harvey rachel 52ndst), (goal))
+((initial), (place-victim henchman2 rachel car2 avex))
+((place-victim henchman2 rachel car2 avex), (goal))
+((place-victim henchman2 rachel car2 avex), (save-character batman harvey rachel 52ndst))
+((initial), (place-victim henchman1 harvey car1 52ndst))
+((place-victim henchman1 harvey car1 52ndst), (goal))
+((place-victim henchman1 harvey car1 52ndst), (save-character batman harvey rachel 52ndst))
+((initial), (move-location batman 52ndst gothampd))
+((move-location batman 52ndst gothampd), (goal))
+((move-location batman 52ndst gothampd), (save-character batman harvey rachel 52ndst))
+((initial), (interrogate-character batman joker gothampd))
+((interrogate-character batman joker gothampd), (goal))
+((interrogate-character batman joker gothampd), (move-location batman 52ndst gothampd))

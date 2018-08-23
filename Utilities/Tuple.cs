@@ -28,6 +28,11 @@ namespace BoltFreezer.Utilities
             return false;
         }
 
+        public override string ToString()
+        {
+            return String.Format("({0}, {1})", First.ToString(), Second.ToString());
+        }
+
         public Object Clone()
         {
             return new Tuple<T1,T2>(First, Second);

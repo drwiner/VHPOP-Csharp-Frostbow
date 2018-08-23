@@ -131,6 +131,7 @@
     <Compile Include="PriorityQueue\StablePriorityQueue.cs" />
     <Compile Include="PriorityQueue\StablePriorityQueueNode.cs" />
     <Compile Include="Utilities\EnumerableExtension.cs" />
+    <Compile Include="Utilities\Logger.cs" />
     <Compile Include="Utilities\PredicateComparer.cs" />
     <Compile Include="Utilities\PredicateListComparer.cs" />
     <Compile Include="Utilities\Tuple.cs" />
