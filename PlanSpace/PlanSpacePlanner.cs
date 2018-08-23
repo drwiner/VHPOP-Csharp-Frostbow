@@ -59,6 +59,24 @@ namespace BoltFreezer.PlanSpace
             Insert(initialPlan);
         }
 
+        public static IPlan CreateInitialPlan(Problem problem)
+        {
+            var initialPlan = new Plan(new State(problem.Initial) as IState, new State(problem.Goal) as IState);
+            foreach (var goal in problem.Goal)
+                initialPlan.Flaws.Add(initialPlan, new OpenCondition(goal, initialPlan.GoalStep as IPlanStep));
+            initialPlan.Orderings.Insert(initialPlan.InitialStep, initialPlan.GoalStep);
+            return initialPlan;
+        }
+
+        public static IPlan CreateInitialPlan(List<IPredicate> Initial, List<IPredicate> Goal)
+        {
+            var initialPlan = new Plan(new State(Initial) as IState, new State(Goal) as IState);
+            foreach (var goal in Goal)
+                initialPlan.Flaws.Add(initialPlan, new OpenCondition(goal, initialPlan.GoalStep as IPlanStep));
+            initialPlan.Orderings.Insert(initialPlan.InitialStep, initialPlan.GoalStep);
+            return initialPlan;
+        }
+
         public static IPlan CreateInitialPlan(ProblemFreezer PF)
         {
             var initialPlan = new Plan(new State(PF.testProblem.Initial) as IState, new State(PF.testProblem.Goal) as IState);

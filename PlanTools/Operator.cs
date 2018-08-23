@@ -43,7 +43,13 @@ namespace BoltFreezer.PlanTools
 
         public List<List<ITerm>> NonEqualities
         {
-            get { return nonequalities; }
+            get {
+                if (nonequalities == null)
+                {
+                    nonequalities = new List<List<ITerm>>();
+                }
+                return nonequalities;
+            }
             set { nonequalities = value; }
         }
 
