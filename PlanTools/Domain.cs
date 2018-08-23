@@ -16,7 +16,7 @@ namespace BoltFreezer.PlanTools
         private string name;
         private PlanType type;
         private List<IOperator> operators;
-        private Hashtable objectTypes;
+        public Hashtable objectTypes;
         private Hashtable constantTypes;
         public string staticStart;
         private List<IPredicate> predicates;

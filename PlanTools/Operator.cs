@@ -13,20 +13,21 @@ namespace BoltFreezer.PlanTools
     [Serializable]
     public class Operator : IOperator
     {
-        private static int Counter = -1;
+        protected static int Counter = -1;
 
-        private int height;
-        private IPredicate predicate;
-        private List<IPredicate> preconditions;
-        private List<IPredicate> effects;
+        protected int height;
+        protected IPredicate predicate;
+        protected List<IPredicate> preconditions;
+        protected List<IPredicate> effects;
 
-        private int id;
-        private Hashtable bindings;
+        protected int id;
+        protected Hashtable bindings;
 
         // use these do I?
-        private List<IAxiom> conditionals;
-        private List<ITerm> consenting;
-        private List<IPredicate> exceptionalEffects;
+        protected List<IAxiom> conditionals;
+        protected List<ITerm> consenting;
+        protected List<IPredicate> exceptionalEffects;
+        protected List<List<ITerm>> nonequalities;
 
 
         public static void SetCounterExternally(int newVal)
@@ -38,6 +39,12 @@ namespace BoltFreezer.PlanTools
         {
             get { return height; }
             set { height = value; }
+        }
+
+        public List<List<ITerm>> NonEqualities
+        {
+            get { return nonequalities; }
+            set { nonequalities = value; }
         }
 
         // Access the operator's predicate.
@@ -58,8 +65,8 @@ namespace BoltFreezer.PlanTools
         public List<ITerm> Terms
         {
             get { return Predicate.Terms; }
-            set 
-            { 
+            set
+            {
                 Predicate.Terms = value;
                 UpdateBindings();
             }
@@ -75,8 +82,8 @@ namespace BoltFreezer.PlanTools
         public List<IPredicate> Preconditions
         {
             get { return preconditions; }
-            set 
-            { 
+            set
+            {
                 preconditions = value;
                 UpdatePreconditionBindings();
             }
@@ -86,8 +93,8 @@ namespace BoltFreezer.PlanTools
         public List<IPredicate> Effects
         {
             get { return effects; }
-            set 
-            { 
+            set
+            {
                 effects = value;
                 UpdateEffectBindings();
             }
@@ -117,8 +124,8 @@ namespace BoltFreezer.PlanTools
         public List<ITerm> ConsentingAgents
         {
             get { return consenting; }
-            set 
-            { 
+            set
+            {
                 consenting = value;
                 UpdateConsentingAgentBindings();
             }
@@ -134,14 +141,14 @@ namespace BoltFreezer.PlanTools
         public Hashtable Bindings
         {
             get { return bindings; }
-            set 
-            { 
+            set
+            {
                 bindings = value;
                 UpdateTerms();
             }
         }
 
-        public Operator ()
+        public Operator()
         {
             predicate = new Predicate();
             preconditions = new List<IPredicate>();
@@ -163,11 +170,24 @@ namespace BoltFreezer.PlanTools
             exceptionalEffects = new List<IPredicate>();
         }
 
+
         public Operator(string name, List<IPredicate> preconditions, List<IPredicate> effects)
         {
             predicate = new Predicate(name, new List<ITerm>(), true);
             this.preconditions = preconditions;
             this.effects = effects;
+            conditionals = new List<IAxiom>();
+            bindings = new Hashtable();
+            id = System.Threading.Interlocked.Increment(ref Counter);
+            consenting = new List<ITerm>();
+            exceptionalEffects = new List<IPredicate>();
+        }
+
+        public Operator(Predicate predicate)
+        {
+            this.predicate = predicate;
+            this.preconditions = new List<IPredicate>();
+            this.effects = new List<IPredicate>();
             conditionals = new List<IAxiom>();
             bindings = new Hashtable();
             id = System.Threading.Interlocked.Increment(ref Counter);
@@ -187,7 +207,7 @@ namespace BoltFreezer.PlanTools
             exceptionalEffects = new List<IPredicate>();
         }
 
-        public Operator (string name, List<ITerm> terms, Hashtable bindings, List<IPredicate> preconditions, List<IPredicate> effects)
+        public Operator(string name, List<ITerm> terms, Hashtable bindings, List<IPredicate> preconditions, List<IPredicate> effects)
         {
             this.predicate = new Predicate(name, terms, true);
             this.preconditions = preconditions;
@@ -221,7 +241,7 @@ namespace BoltFreezer.PlanTools
             this.bindings = bindings;
             this.id = id;
             consenting = new List<ITerm>();
-            exceptionalEffects = new List<IPredicate>(); 
+            exceptionalEffects = new List<IPredicate>();
         }
 
         // Updates terms from a bindings table.
@@ -334,7 +354,7 @@ namespace BoltFreezer.PlanTools
         }
 
         // Adds a variable/constant binding pair to the operator.
-        public void AddBinding (string variable, string constant)
+        public void AddBinding(string variable, string constant)
         {
             // Create a new hashtable to hold the new bindings.
             Hashtable newBindings = Bindings.Clone() as Hashtable;
@@ -346,9 +366,9 @@ namespace BoltFreezer.PlanTools
             Bindings = newBindings;
         }
 
-        public void AddBindings (List<string> variables, List<string> constants)
+        public void AddBindings(List<string> variables, List<string> constants)
         {
-            var bindingPairs = variables.Zip(constants, (v, c) => new {Variable=v, Constant=c});
+            var bindingPairs = variables.Zip(constants, (v, c) => new { Variable = v, Constant = c });
             Hashtable newBindings = Bindings.Clone() as Hashtable;
             foreach (var bp in bindingPairs)
             {
@@ -356,6 +376,19 @@ namespace BoltFreezer.PlanTools
             }
 
             Bindings = newBindings;
+        }
+
+        public bool NonEqualTermsAreNonequal()
+        {
+
+            foreach (var nonequals in NonEqualities)
+            {
+                var first = Terms.First(term => term.Variable.Equals(nonequals[0].Variable));
+                var second = Terms.First(term => term.Variable.Equals(nonequals[1].Variable));
+                if (first.Constant.Equals(second.Constant))
+                    return false;
+            }
+            return true;
         }
 
         // Return the term at the nth position.
@@ -438,6 +471,28 @@ namespace BoltFreezer.PlanTools
             return false;
         }
 
+        // self is GROUND
+        public bool IsConsistent(Operator other)
+        {
+            if (this.Equals(other))
+                return true;
+
+            // Check predicate.
+            if (Predicate.Equals(other.Predicate))
+                return true;
+            if (other.Predicate.Name != "" && other.Predicate.Name != Predicate.Name)
+                return false;
+            if (other.Arity != Arity)
+                return false;
+
+            for (int i = 0; i < Terms.Count; i++)
+            {
+                // check terms at each one.
+            }
+
+            return false;
+        }
+
         // Returns a hashcode.
         public override int GetHashCode()
         {
@@ -485,7 +540,11 @@ namespace BoltFreezer.PlanTools
             else
                 newConditionals = new List<IAxiom>();
 
-            return new Operator(newName, newTerms, newBinds, newPreconditions, newEffects, newConditionals, ID);
+            return new Operator(newName, newTerms, newBinds, newPreconditions, newEffects, newConditionals, ID)
+            {
+                Height = height,
+                NonEqualities = nonequalities
+            };
         }
 
         // Creates the operator's template object.

@@ -21,7 +21,8 @@ namespace BoltFreezer.PlanTools
         public bool isInit = false;
         public int risks = 0;
         public int cndts = 0;
-        
+        public int addReuseHeuristic = -1;
+
 
         FlawType IFlaw.Ftype
         {
@@ -65,44 +66,56 @@ namespace BoltFreezer.PlanTools
             else if (other.isStatic && !isStatic)
                 return 1;
 
-            // check init
-            if (isInit && !other.isInit)
-                return -1;
-            else if (other.isInit && !isInit)
-                return 1;
+            // MW-Loc-Conf = {threats} LIFO / {unsafe} MW_add / {local} MW_add
 
-            // check risks
-            if (risks > 0 || other.risks > 0)
+            // if one is unsafe and the other is not.
+            if (risks > 0 && other.risks == 0)
             {
-                if (risks > other.risks)
-                    return -1;
-                else if (risks < other.risks)
-                    return 1;
+                return -1;
             }
-
-            // check cndts
-            if (cndts > other.cndts)
-                return -1;
-            else if (cndts < other.cndts)
-                return 1;
-
-            // resort to tiebreak criteria
-            if (step.ID == other.step.ID)
+            else if (other.risks > 0 && risks == 0)
             {
-                if (precondition.Equals(other.precondition))
+                return 1;
+            }
+            if (other.risks > 0 && risks == other.risks)
+            {
+                // if they are both unsafe, choose one with most work
+                if (addReuseHeuristic > other.addReuseHeuristic)
                 {
-                    throw new System.Exception();
+                    return -1;
                 }
                 else
-                    return PredicateComparer.CompareTo(precondition, other.precondition);
-
+                {
+                    return 1;
+                }
             }
-            else if (step.ID < other.step.ID)
+
+            // Local step's open conditions first. Lower planstep ID == added to plan earlier
+            if (step.ID < other.step.ID)
             {
                 return -1;
             }
-            else
+            else if (step.ID > other.step.ID)
                 return 1;
+
+            // If they are of the same step, only then do we select between mos work...
+            if (addReuseHeuristic > other.addReuseHeuristic)
+            {
+                return -1;
+            }
+            else if (addReuseHeuristic < other.addReuseHeuristic)
+            {
+                return 1;
+            }
+
+            // tiebreaker if they are the same work
+            if (precondition.Equals(other.precondition))
+            {
+                throw new System.Exception();
+            }
+            else
+                return PredicateComparer.CompareTo(precondition, other.precondition);
+
         }
 
         public static bool operator < (OpenCondition self, OpenCondition other)

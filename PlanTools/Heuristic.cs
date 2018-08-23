@@ -1,7 +1,9 @@
 ﻿
 using BoltFreezer.Enums;
 using BoltFreezer.Interfaces;
+using BoltFreezer.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BoltFreezer.PlanTools
 {
@@ -65,117 +67,123 @@ namespace BoltFreezer.PlanTools
 
     public static class HeuristicMethods
     {
-
-        private static Dictionary<IOperator, int> visitedOps = new Dictionary<IOperator, int>();
-        private static Dictionary<IPredicate, int> visitedPreds = new Dictionary<IPredicate, int>();
-
-        private static List<IPredicate> currentlyEvaluatedPreds;
+        // These may be stored in preprocessing step
+        public static TupleMap<IPredicate, int> visitedPreds = new TupleMap<IPredicate, int>();
 
         // h^r_add(pi) = sum_(oc in plan) 0 if exists a step possibly preceding oc.step and h_add(oc.precondition) otherwise.
         public static int AddReuseHeuristic(IPlan plan)
         {
+           // Logger.LogThingToType("AddReuse", " ", "HeuristicNew");
+            //Logger.LogThingToType("AddReuse", " ", "HeuristicOld");
 
+            var tuplemapping = new TupleMap<IPredicate, List<IPlanStep>>();
+            // var posmapping = new Dictionary<IPredicate, List<int>>();
+            //var negmapping = new Dictionary<IPredicate, List<int>>();
+            var effList = new List<IPredicate>();
             int sumo = 0;
-            foreach (var oc in plan.Flaws.OpenConditions)
-            {
-                
-                // Refresh to new list
-                currentlyEvaluatedPreds = new List<IPredicate>();
 
-                if (visitedPreds.ContainsKey(oc.precondition))
+            if (plan.Flaws.OpenConditions.Count > plan.Steps.Count)
+            {
+                //var beforePreamble = Logger.Log();
+                foreach (var existingStep in plan.Steps)
                 {
-                    sumo += visitedPreds[oc.precondition];
-                    continue;
+                    if (existingStep.Height > 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var eff in existingStep.Effects)
+                    {
+                        effList.Add(eff);
+                        if (!tuplemapping.Get(eff.Sign).ContainsKey(eff))
+                        {
+                            tuplemapping.Get(eff.Sign)[eff] = new List<IPlanStep>() { existingStep };
+                        }
+                        else
+                        {
+                            tuplemapping.Get(eff.Sign)[eff].Add(existingStep);
+                        }
+                    }
                 }
 
+                //Logger.LogTimeToType("collectStepsPreamble", Logger.Log() - beforePreamble, "HeuristicNew");
+
+                foreach (var oc in plan.Flaws.OpenConditions)
+                {
+                    //var beforeEachOc = Logger.Log();
+                    var existsA = false;
+                    if (effList.Contains(oc.precondition))
+                    {
+
+                        foreach (var action in tuplemapping.Get(oc.precondition.Sign)[oc.precondition])
+                        {
+                            if (plan.Orderings.IsPath(oc.step, action))
+                                continue;
+
+                            existsA = true;
+                            break;
+                        }
+                    }
+                    if (!existsA)
+                    {
+                        // we should always have the conditions in the visitedPreds dictionary if we processed correctly
+                        if (visitedPreds.Get(oc.precondition.Sign).ContainsKey(oc.precondition))
+                        {
+                            sumo += visitedPreds.Get(oc.precondition.Sign)[oc.precondition];
+                            continue;
+                        }
+                        // Fail gracefully
+                        sumo += 100000;
+                        //throw new System.Exception("visitedPreds does not contain " + oc.precondition.ToString());
+                    }
+                    //Logger.LogTimeToType("EachOC", Logger.Log() - beforeEachOc, "HeuristicNew");
+                }
+
+                return sumo;
+            }
+
+
+            // we are just taking the sum of the visitedPreds values of the open conditions, unless there is a step that establishes the condition already in plan (reuse).
+
+            foreach (var oc in plan.Flaws.OpenConditions)
+            {
+
+               // var wayBefore = Logger.Log();
                 // Does there exist a step in the plan that can establish this needed precondition?
                 var existsA = false;
                 foreach (var existingStep in plan.Steps)
                 {
-                    if (plan.Orderings.IsPath(oc.step, existingStep))
+
+                    if (existingStep.Height > 0)
                         continue;
 
+                    //var before = Logger.Log();
                     if (CacheMaps.IsCndt(oc.precondition, existingStep))
                     {
                         existsA = true;
                         break;
                     }
+                    //L//ogger.LogTimeToType("IsCndt", Logger.Log() - before, "HeuristicOld");
+
+                    if (plan.Orderings.IsPath(oc.step, existingStep))
+                        continue;
                 }
 
                 // append heuristic for open condition
                 if (!existsA)
                 {
-                    currentlyEvaluatedPreds.Add(oc.precondition);
-                    sumo += AddHeuristic(plan.Initial, oc.precondition);
-                }
-            }
-            return sumo;
-        }
-
-        // h_add(q) = 0 if holds initially, min a in GA, and infinite otherwise
-        public static int AddHeuristic(IState initial, IPredicate condition)
-        {
-            if (initial.InState(condition))
-                return 0;
-
-            // if we have a value for this, return it.
-            if (visitedPreds.ContainsKey(condition))
-            {
-                return visitedPreds[condition];
-            }
-
-            int minSoFar = 1000;
-            // Then this is a static condition that can never be true... we should avoid this plan.
-            if (!CacheMaps.CausalMap.ContainsKey(condition))
-            {
-                return minSoFar;
-            }
-
-            // find the gorund action that minimizes the heuristic estimate
-            foreach (var groundAction in CacheMaps.GetCndts(condition))
-            {
-
-                int thisVal;
-                if (visitedOps.ContainsKey(groundAction))
-                {
-                    thisVal = visitedOps[groundAction];
-                }
-                else
-                {
-                    thisVal = AddHeuristic(initial, groundAction);
+                    // we should always have the conditions in the visitedPreds dictionary if we processed correctly
+                    if (visitedPreds.Get(oc.precondition.Sign).ContainsKey(oc.precondition))
+                    {
+                        sumo += visitedPreds.Get(oc.precondition.Sign)[oc.precondition];
+                        continue;
+                    }
+                    sumo += 100000;
+                    //throw new System.Exception("visitedPreds does not contain " + oc.precondition.ToString());
                 }
 
-
-                if (thisVal < minSoFar)
-                {
-                    minSoFar = thisVal;
-                }
+                //Logger.LogTimeToType("EachOC", Logger.Log() - wayBefore, "HeuristicOld");
             }
-
-            visitedPreds[condition] = minSoFar;
-            return minSoFar;
-        }
-
-        // h_add(a) = 1 + h_add (Prec(a))
-        public static int AddHeuristic(IState initial, IOperator op)
-        {
-            if (visitedOps.ContainsKey(op))
-            {
-                return visitedOps[op];
-            }
-
-            int sumo = 1;
-            foreach (var precond in op.Preconditions)
-            {
-                if (currentlyEvaluatedPreds.Contains(precond))
-                {
-                    continue;
-                }
-
-                currentlyEvaluatedPreds.Add(precond);
-                sumo += AddHeuristic(initial, precond);
-            }
-            visitedOps[op] = sumo;
             return sumo;
         }
 
