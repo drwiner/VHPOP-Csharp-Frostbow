@@ -90,8 +90,19 @@ namespace BoltFreezer.PlanSpace
         {
             if (!plan.Orderings.HasCycle())
             {
-                search.Frontier.Enqueue(plan, Score(plan));
+                var score = Score(plan);
+                if (score > 600)
+                {
+                    Console.WriteLine(score);
+                    // reduce size of frontier
+                    return;
+                }
+                search.Frontier.Enqueue(plan, score);
                 opened++;
+            }
+            else
+            {
+                plan = null;
             }
         }
 

@@ -47,7 +47,7 @@ namespace TestVHPOP
             System.IO.Directory.CreateDirectory(directory);
             var testDomainDirectory = @"D:\Documents\classical-domains\classical\hiking-sat14-strips\domain.pddl";
             var testDomain = Parser.GetDomain(testDomainDirectory, PlanType.PlanSpace);
-            var testProblem = Parser.GetProblem(@"D:\Documents\classical-domains\classical\hiking-sat14-strips\ptesting-1-2-8.pddl");
+            var testProblem = Parser.GetProblem(@"D:\Documents\classical-domains\classical\hiking-sat14-strips\ptesting-1-2-7.pddl");
 
             Console.WriteLine("Creating Ground Operators");
             GroundActionFactory.Reset();
@@ -69,8 +69,8 @@ namespace TestVHPOP
             var initPlan = PlanSpacePlanner.CreateInitialPlan(testProblem);
 
             RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new AddReuseHeuristic()), k, cutoff, directory, 1);
-            initPlan = PlanSpacePlanner.CreateInitialPlan(testProblem);
-            RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new NumOpenConditionsHeuristic()), k, cutoff, directory, 1);
+            //initPlan = PlanSpacePlanner.CreateInitialPlan(testProblem);
+            //RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new NumOpenConditionsHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new DFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new BFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
         }

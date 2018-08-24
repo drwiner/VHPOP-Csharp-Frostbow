@@ -40,7 +40,15 @@ namespace BoltFreezer.PlanTools
             if (GroundActionFactory.Statics.Contains(oc.precondition))
             {
                 oc.isStatic = true;
+                oc.addReuseHeuristic = 0;
+                OpenConditions.Add(oc);
                 return;
+            }
+
+            // Use this value to keep track of amount of work.
+            if (HeuristicMethods.visitedPreds.Get(oc.precondition.Sign).ContainsKey(oc.precondition))
+            {
+                oc.addReuseHeuristic = HeuristicMethods.visitedPreds.Get(oc.precondition.Sign)[oc.precondition];
             }
 
             // Calculate risks and cndts
@@ -53,9 +61,6 @@ namespace BoltFreezer.PlanTools
                 if (plan.Orderings.IsPath(oc.step, step))
                     continue;
 
-                if (CacheMaps.IsCndt(oc.precondition, step))
-                    oc.cndts += 1;
-
                 if (CacheMaps.IsThreat(oc.precondition, step))
                     oc.risks += 1;
 
@@ -65,6 +70,7 @@ namespace BoltFreezer.PlanTools
             if (oc.risks == 0 && plan.Initial.InState(oc.precondition))
             {
                 oc.isInit = true;
+                oc.addReuseHeuristic = 1;
             }
 
             OpenConditions.Add(oc);
