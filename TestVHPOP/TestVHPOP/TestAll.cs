@@ -31,15 +31,23 @@ namespace TestVHPOP
 
             Console.Write("hello world\n");
             
-            var cutoff = 6000f;
+            var cutoff = 100000f;
             var k = 1;
 
-            var testDomainName = "batman";
-            var directory = Parser.GetTopDirectory() + @"/Results/" + testDomainName + @"/";
+            // var testDomainName = "batman";
+            // var directory = Parser.GetTopDirectory() + @"/Results/" + testDomainName + @"/";
+            // System.IO.Directory.CreateDirectory(directory);
+            //    var testDomainDirectory = Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl";
+            //var testDomain = Parser.GetDomain(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl", PlanType.PlanSpace);
+            //var testProblem = Parser.GetProblem(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\prob01.pddl");
+
+            Parser.path = @"D:\Documents\classical-domains\classical\hiking-sat14-strips\";
+            var testDomainName = "hiking -sat14-strips";
+            var directory = @"D:\Documents\classical-domains\classical\hiking-sat14-strips\Results\";
             System.IO.Directory.CreateDirectory(directory);
-            var testDomainDirectory = Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl";
-            var testDomain = Parser.GetDomain(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\domain.pddl", PlanType.PlanSpace);
-            var testProblem = Parser.GetProblem(Parser.GetTopDirectory() + @"Benchmarks\" + testDomainName + @"\prob01.pddl");
+            var testDomainDirectory = @"D:\Documents\classical-domains\classical\hiking-sat14-strips\domain.pddl";
+            var testDomain = Parser.GetDomain(testDomainDirectory, PlanType.PlanSpace);
+            var testProblem = Parser.GetProblem(@"D:\Documents\classical-domains\classical\hiking-sat14-strips\ptesting-1-2-8.pddl");
 
             Console.WriteLine("Creating Ground Operators");
             GroundActionFactory.Reset();
@@ -61,7 +69,8 @@ namespace TestVHPOP
             var initPlan = PlanSpacePlanner.CreateInitialPlan(testProblem);
 
             RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new AddReuseHeuristic()), k, cutoff, directory, 1);
-            //RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new NumOpenConditionsHeuristic()), k, cutoff, directory, 1);
+            initPlan = PlanSpacePlanner.CreateInitialPlan(testProblem);
+            RunPlanner(initPlan.Clone() as IPlan, new ADstar(), new E0(new NumOpenConditionsHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new DFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
             //RunPlanner(initPlan.Clone() as IPlan, new BFS(), new Nada(new ZeroHeuristic()), k, cutoff, directory, 1);
         }

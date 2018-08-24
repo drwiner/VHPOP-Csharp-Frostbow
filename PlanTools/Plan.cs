@@ -165,6 +165,10 @@ namespace BoltFreezer.PlanTools
             foreach (var clink in causalLinks)
             {
                 // Let it be for now that a newly inserted step cannot already be in a causal link in the plan (a head or tail). If not true, then check first.
+                if (clink.Head.ID == possibleThreat.ID || clink.Tail.ID == possibleThreat.ID)
+                {
+                    continue;
+                }
                 if (!CacheMaps.IsThreat(clink.Predicate, possibleThreat))
                 {
                     continue;
@@ -178,6 +182,7 @@ namespace BoltFreezer.PlanTools
                 {
                     continue;
                 }
+                
                 
                 Flaws.Add(new ThreatenedLinkFlaw(clink, possibleThreat));
             }

@@ -9,10 +9,14 @@ namespace BoltFreezer.PlanTools
     public class PlanStep : IPlanStep
     {
         private static int Counter = -1;
-        private IOperator action;
-        private List<IPredicate> openConditions;
+        protected IOperator action;
+        protected List<IPredicate> openConditions;
+        protected int id;
 
-        private int id;
+        public static void SetCounterExternally(int newVal)
+        {
+            Counter = newVal;
+        }
 
         public IOperator Action
         {
@@ -23,6 +27,7 @@ namespace BoltFreezer.PlanTools
         public int ID
         {
             get { return id; }
+            set { id = value; }
         }
 
         public int Height
@@ -39,7 +44,7 @@ namespace BoltFreezer.PlanTools
         }
 
         // Inherit from IOperator
-        public IPredicate Predicate { get => Action.Predicate; set => Action.Predicate=  value; }
+        public IPredicate Predicate { get => Action.Predicate; set => Action.Predicate = value; }
         public string Name { get => Action.Name; set => Action.Name = value; }
         public List<ITerm> Terms { get => Action.Terms; set => Action.Terms = value; }
         public int Arity => Action.Arity;
@@ -49,6 +54,7 @@ namespace BoltFreezer.PlanTools
         public List<IPredicate> ExceptionalEffects { get => Action.ExceptionalEffects; set => Action.ExceptionalEffects = value; }
         public string Actor => Action.Actor;
         public List<ITerm> ConsentingAgents { get => Action.ConsentingAgents; set => Action.ConsentingAgents = value; }
+        public List<List<ITerm>> NonEqualities { get => Action.NonEqualities; set => Action.NonEqualities = value; }
 
         public PlanStep()
         {
@@ -72,8 +78,6 @@ namespace BoltFreezer.PlanTools
         {
             action = planStep.Action as IOperator;
             id = System.Threading.Interlocked.Increment(ref Counter);
-
-            // Generate open conditions to fulfill
             openConditions = new List<IPredicate>();
             foreach (var precondition in planStep.OpenConditions)
             {
@@ -85,8 +89,6 @@ namespace BoltFreezer.PlanTools
         {
             action = groundAction;
             id = _id;
-
-            // Copy open conditions from existing plan step
             openConditions = new List<IPredicate>();
             foreach (var precondition in ocs)
             {
@@ -94,15 +96,10 @@ namespace BoltFreezer.PlanTools
             }
         }
 
-        public PlanStep (IOperator groundAction, int _id)
+        public PlanStep(IOperator groundAction, int _id)
         {
             action = groundAction;
             id = _id;
-            openConditions = new List<IPredicate>();
-            foreach (var precondition in groundAction.Preconditions)
-            {
-                openConditions.Add(precondition);
-            }
         }
 
         public PlanStep(IPlanStep planStep, int _id)
@@ -116,7 +113,6 @@ namespace BoltFreezer.PlanTools
             }
         }
 
-        // Removes an open condition
         public void Fulfill(IPredicate condition)
         {
             if (!action.Preconditions.Contains(condition))
@@ -135,13 +131,13 @@ namespace BoltFreezer.PlanTools
         // A special method for displaying fully ground steps.
         public override string ToString()
         {
-            return Action.ToString();
+            return String.Format("{0}-{1}", Action.ToString(), ID);
         }
 
         // Checks if two operators are equal.
         public override bool Equals(Object obj)
         {
-            // Store the object as a state space action.
+            // Store the object as a Plan Step
             PlanStep step = obj as PlanStep;
 
             if (step.ID == ID)
@@ -180,7 +176,8 @@ namespace BoltFreezer.PlanTools
         // the clone doesn't need to mutate the underlying action (Action)
         public Object Clone()
         {
-            return new PlanStep(Action, OpenConditions, ID);
+            return new PlanStep(Action, OpenConditions, ID)
+            {};
         }
 
         public string TermAt(int position)

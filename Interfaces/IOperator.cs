@@ -24,6 +24,8 @@ namespace BoltFreezer.Interfaces
         // Action predicates have arity.
         int Arity { get; }
 
+        List<List<ITerm>> NonEqualities { get; set; }
+
         // Actions have preconditions.
         List<IPredicate> Preconditions { get; set; }
 

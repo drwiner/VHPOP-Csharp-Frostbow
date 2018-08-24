@@ -11,6 +11,7 @@ using BoltFreezer.Interfaces;
 using BoltFreezer.PlanTools;
 using BoltFreezer.Enums;
 using System;
+using BoltFreezer.Utilities;
 
 namespace BoltFreezer.FileIO
 {
@@ -19,7 +20,7 @@ namespace BoltFreezer.FileIO
         public static string path = @"D:\Documents\Frostbow\VHPOP\";
 
         // Returns the project's top directory as a string.
-        public static string GetTopDirectory ()
+        public static string GetTopDirectory()
         {
             // Split the current directory path by \.
             string[] splPath = Directory.GetCurrentDirectory().Split('\\');
@@ -35,16 +36,16 @@ namespace BoltFreezer.FileIO
             // Return the new path string.
             //return @"C:\MediationService\";
             //return @"J:\Code\Mediation\GME\";
-            #if (DEBUG)
-                //path = @"J:\Code\Mediation\GME\";
-            #endif
+#if (DEBUG)
+            //path = @"J:\Code\Mediation\GME\";
+#endif
 
             if (path.Equals("")) return topDir;
             else return path;
         }
 
         // Returns the project's top directory for a sh script.
-        public static string GetScriptDirectory ()
+        public static string GetScriptDirectory()
         {
             // Remove the drive colon from the top directory's path.
             string shDir = Regex.Replace(GetTopDirectory(), ":", "");
@@ -60,7 +61,7 @@ namespace BoltFreezer.FileIO
         }
 
         // Reads in a plan from a file.
-        public static Plan GetPlan (string file, Domain domain, Problem problem)
+        public static Plan GetPlan(string file, Domain domain, Problem problem)
         {
             // The plan object.
             Plan plan = new Plan();
@@ -248,7 +249,7 @@ namespace BoltFreezer.FileIO
         }
 
         // Reads in a domain from a file.
-        public static Domain GetDomain (string file, PlanType type)
+        public static Domain GetDomain(string file, PlanType type)
         {
             bool readInStat = true;
             int start = 0;
@@ -263,7 +264,7 @@ namespace BoltFreezer.FileIO
             string input = System.IO.File.ReadAllText(file);
 
             // Split the input string by space, line feed, character return, and tab.
-            string[] words = input.Split(new char[] {' ', '\r', '\n', '\t'});
+            string[] words = input.Split(new char[] { ' ', '\r', '\n', '\t' });
 
             // Remove all empty elements of the word array.
             words = words.Where(x => !string.IsNullOrEmpty(x)).ToArray();
@@ -381,7 +382,7 @@ namespace BoltFreezer.FileIO
                         {
                             // Create a new term using the variable name.
                             Term term = new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", ""));
-                            
+
                             // Check if the term has a specified type.
                             if (Regex.Replace(words[i + 1], @"\t|\n|\r", "").Equals("-"))
                             {
@@ -399,12 +400,16 @@ namespace BoltFreezer.FileIO
                     // Create a list to hold the preconditions.
                     List<IPredicate> preconditions = new List<IPredicate>();
 
-                    // Add the operator's preconditions.
+                    // Create a list to hold nonequality constraints
+                    List<List<ITerm>> Nonequalities = new List<List<ITerm>>();
+                    bool lastWasNonEquality = false;
+                    // Add the operator's preconditions
                     while (!Regex.Replace(words[i++], @"\t|\n|\r", "").Equals(":effect"))
                     {
+
                         if (words[i][0] == '(')
                         {
-                            if(!words[i].Equals("(and"))
+                            if (!words[i].Equals("(and"))
                             {
                                 // Create a new precondition object.
                                 Predicate pred = new Predicate();
@@ -422,23 +427,52 @@ namespace BoltFreezer.FileIO
                                 // Set the precondition's name.
                                 pred.Name = Regex.Replace(words[i], @"\t|\n|\r|[()]", "");
 
-                                // Add the precondition to the operator.
-                                preconditions.Add(pred);
+                                if (pred.Name.Equals("="))
+                                {
+                                    if (pred.Sign)
+                                    {
+                                        throw new System.Exception();
+                                    }
+                                    // this is a nonequality constraint
+                                    lastWasNonEquality = true;
+                                    Nonequalities.Add(new List<ITerm>());
+                                }
+                                else
+                                {
+                                    lastWasNonEquality = false;
+                                    // Add the precondition to the operator.
+                                    preconditions.Add(pred);
+                                }
                             }
                         }
                         else
                         {
-                            // Add the precondition's terms.
-                            if (!Regex.Replace(words[i], @"\t|\n|\r", "").Equals(":effect") && !words[i].Equals(")"))
-                                if (Regex.Replace(words[i], @"\t|\n|\r|[()]", "")[0] == '?')
-                                    preconditions.Last().Terms.Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", "")));
-                                else
-                                    preconditions.Last().Terms.Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", ""), true));
+                            if (lastWasNonEquality)
+                            {
+                                if (!Regex.Replace(words[i], @"\t|\n|\r", "").Equals(":effect") && !words[i].Equals(")"))
+                                    if (Regex.Replace(words[i], @"\t|\n|\r|[()]", "")[0] == '?')
+                                        Nonequalities.Last().Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", "")));
+                                    else
+                                        Nonequalities.Last().Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", ""), true));
+                            }
+                            else
+                            {
+
+
+                                // Add the precondition's terms.
+                                if (!Regex.Replace(words[i], @"\t|\n|\r", "").Equals(":effect") && !words[i].Equals(")"))
+                                    if (Regex.Replace(words[i], @"\t|\n|\r|[()]", "")[0] == '?')
+                                        preconditions.Last().Terms.Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", "")));
+                                    else
+                                        preconditions.Last().Terms.Add(new Term(Regex.Replace(words[i], @"\t|\n|\r|[()]", ""), true));
+
+                            }
                         }
                     }
 
                     // Add the preconditions to the last created operator.
                     domain.Operators.Last().Preconditions = preconditions;
+                    domain.Operators.Last().NonEqualities = Nonequalities;
 
                     // Create a list to hold the effects.
                     List<IPredicate> effects = new List<IPredicate>();
@@ -454,7 +488,7 @@ namespace BoltFreezer.FileIO
                             {
                                 // Create a new axiom object.
                                 Axiom axiom = new Axiom();
-                                
+
                                 if (words[i].Equals("(forall"))
                                 {
                                     // Read in the axiom's terms.
@@ -699,7 +733,7 @@ namespace BoltFreezer.FileIO
         }
 
         // Reads in a problem from a file.
-        public static Problem GetProblem (string file)
+        public static Problem GetProblem(string file)
         {
             // Create the problem object.
             Problem problem = new Problem();
@@ -736,7 +770,7 @@ namespace BoltFreezer.FileIO
                             if (!Regex.Replace(words[i], @"\t|\n|\r", "").ToLower().Equals("-"))
                                 tempObjects.Add(Regex.Replace(words[i], @"\t|\n|\r|[()]", "").ToLower());
                             else
-                            { 
+                            {
                                 // Store the specified type.
                                 string type = Regex.Replace(words[++i], @"\t|\n|\r|[()]", "").ToLower();
 
@@ -760,33 +794,39 @@ namespace BoltFreezer.FileIO
                     {
                         if (words[i][0] == '(')
                         {
-                           
-                            // Create a new predicate object.
-                            Predicate pred = new Predicate();
-
-                            // Check for a negative predicate.
-                            if (words[i].Equals("(not"))
+                            // Check for an intention predicate.
+                            if (words[i].Equals("(intends"))
                             {
-                                // Iterate the counter.
-                                i++;
-
-                                // Set the predicate's sign to false.
-                                pred.Sign = false;
+                               
                             }
+                            else
+                            {
+                                // Create a new predicate object.
+                                Predicate pred = new Predicate();
 
-                            // Set the predicate's name.
-                            pred.Name = Regex.Replace(words[i++], @"\t|\n|\r|[()]", "");
-
-                            // Add the predicates's terms.
-                            while (words[i][0] != '(')
-                                if (!Regex.Replace(words[i], @"\t|\n|\r|[()]", "").Equals(""))
-                                    pred.Terms.Add(new Term("", Regex.Replace(words[i++], @"\t|\n|\r|[()]", "")));
-                                else
+                                // Check for a negative predicate.
+                                if (words[i].Equals("(not"))
+                                {
+                                    // Iterate the counter.
                                     i++;
 
-                            // Add the predicate to the initial state.
-                            problem.Initial.Add(pred);
-                            
+                                    // Set the predicate's sign to false.
+                                    pred.Sign = false;
+                                }
+
+                                // Set the predicate's name.
+                                pred.Name = Regex.Replace(words[i++], @"\t|\n|\r|[()]", "");
+
+                                // Add the predicates's terms.
+                                while (words[i][0] != '(')
+                                    if (!Regex.Replace(words[i], @"\t|\n|\r|[()]", "").Equals(""))
+                                        pred.Terms.Add(new Term("", Regex.Replace(words[i++], @"\t|\n|\r|[()]", "")));
+                                    else
+                                        i++;
+
+                                // Add the predicate to the initial state.
+                                problem.Initial.Add(pred);
+                            }
                         }
                     }
 
@@ -834,10 +874,10 @@ namespace BoltFreezer.FileIO
         }
 
         // Reads in a problem and fills in its object types.
-        public static Problem GetProblemWithTypes (string file, Domain domain)
+        public static Problem GetProblemWithTypes(string file, Domain domain)
         {
             // Read the problem file into an object.
-            Problem problem = GetProblem (file);
+            Problem problem = GetProblem(file);
 
             // Add type associations to each object.
             foreach (string type in domain.ObjectTypes)
